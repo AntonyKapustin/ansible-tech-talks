@@ -1,0 +1,15 @@
+---
+
+- name: 'install docker'
+  yum:
+    name: docker
+    state: latest
+
+- name: 'Install python library for the docker engine API'
+  pip:
+    name: docker-py
+
+- name: 'Start service docker'
+  service:
+    name: docker
+    state: started

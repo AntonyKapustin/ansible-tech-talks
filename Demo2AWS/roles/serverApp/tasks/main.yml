@@ -1,0 +1,9 @@
+---
+
+- name: 'run docker app'
+  docker_container:
+    name: restApp
+    image: vad1mo/hello-world-rest
+    ports:
+      - "0.0.0.0:5050:5050"
+  become: true

@@ -1,0 +1,44 @@
+---
+- name: 'Find latest amazon linux ami'
+  ec2_ami_facts:
+    owners: '137112412989'
+    region: '{{region}}'
+    filters:
+      root-device-type: "ebs"
+      virtualization-type: "hvm"
+      name: "amzn-ami-hvm*"
+  register: amis
+
+- name: 'Save ami id and subnets count'
+  set_fact:
+    latest_amazon_linux: "{{ amis.images | sort(attribute='creation_date') | last }}"
+    subnets_count: "{{subnets | length}}"
+
+- name: 'Starting instance {{latest_amazon_linux.image_id}}'
+  ec2:
+    image: '{{latest_amazon_linux.image_id}}'
+    region: '{{region}}'
+    instance_type: '{{instance_type}}'
+    vpc_subnet_id: '{{subnets | random}}'
+    assign_public_ip: true
+    key_name: '{{key_name}}'
+    wait: true
+    group: '{{security_groups}}'
+    instance_tags: {Name: "{{instance_name}}-i{{item}}", Created: ansible }
+  with_sequence: count='{{instances_count}}'
+  register: ec2
+
+- debug: var=ec2
+
+ # TODO Get private ip
+
+- name: 'Wait for SSH to come up'
+  wait_for:
+    host: "{{item.instances[0].public_ip}}"
+    port: 22
+    state: started
+  with_items: "{{ec2.results}}"
+
+- name: 'return ec2 info'
+  set_fact:
+    ec2: "{{ec2}}"

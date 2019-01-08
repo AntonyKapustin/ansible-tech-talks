@@ -1,0 +1,37 @@
+- name: 'Demo 1'
+  hosts: "webservers"
+  gather_facts: true
+  tags: provisioning
+
+  tasks:
+
+    - name: 'yum update'
+      yum:
+        name: "*"
+        update_cache: yes
+
+    - name: 'yum upgrade all packages'
+      yum:
+        name: '*'
+        state: latest
+
+    - name: 'Get OS info'
+      shell: cat /etc/os-release
+      register: os_info
+
+    - name: 'Debug info'
+      debug: var=os_info
+
+    - name: 'Copy file'
+      copy:
+        src: files/config
+        dest: ~/
+
+    - name: "Get date from instance"
+      shell: date
+      register: date
+
+    - name: 'Copy template with os data and date'
+      template:
+        src: templates/template.j2
+        dest: ~/template_with_vars
